@@ -49,3 +49,5 @@ resolver(Vars, Total) :-
     T is T1 - T0,
     format('CPU time: ~w~n', [T]).
     
+
+
