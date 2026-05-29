@@ -1,8 +1,7 @@
 :- use_module(library(clpfd)).
 
-%Solucao para funcionar com qualquer numero de retangulos
 
-retangulo(r1,  [1]).
+/*retangulo(r1,  [1]).
 retangulo(r2,  [1,3,2]).
 retangulo(r3,  [5,6]).
 retangulo(r4,  [5,4,3,2]).
@@ -21,8 +20,7 @@ retangulo(r16,  [13,14,16]).
 retangulo(r17,  [16,18]).
 retangulo(r18,  [17,16,14,15]).
 retangulo(r19,  [18,17]).
-retangulo(r20, [18]).
-
+retangulo(r20, [18]).*/
 
 vertices_vars([], _, []).
 
@@ -47,34 +45,36 @@ num_verts(N) :-
     max_list(Todos, N).
 
 resolver(Vars, Total) :-
-
     statistics(cputime, T0),
-    % 10 vértices
     num_verts(N),
     length(Vars, N),
-
-    % variáveis binárias
     Vars ins 0..1,
-	
-    % lista de retângulos
-    %Retangulos = [r1,r2,r3,r4,r5,r6,r7,r8,r9,r10],
     findall(R, retangulo(R,_), Retangulos),
-
-    % impor cobertura
     todos_cobertos(Retangulos, Vars),
-
-    % minimizar quantidade de guardas
     sum(Vars, #=, Total),
-
-    labeling([min(Total)], Vars),
+    Total #>= 1,
+    labeling([min(Total)], Vars),%adicionado first fail pra ver se melhora performance
     statistics(cputime, T1),
     T is T1 - T0,
     format('CPU time: ~w~n', [T]).
 
-output(Vars,Total) :-
-    findall(Vars,resolver(Vars,Total),Z),
-    length(Z, L),
-    format('~w solucoes encontradas~n', [L]).
-    
-    
-    
+output(Vars, Total) :-
+    % recolhe todos os pares Total-Solucao
+    findall(Total-Vars, resolver(Vars, Total), Solucoes),
+
+    % determina o valor minimo
+    pairs_keys(Solucoes, Totais),
+    min_list(Totais, TotalMin),
+
+    % filtra apenas as solucoes com esse valor
+    include([T-_]>>(T =:= TotalMin), Solucoes, Otimas),
+    length(Otimas, L),
+
+    format('Valor otimo: ~w~n', [TotalMin]),
+    format('~w solucao(oes) otima(s) encontrada(s)~n~n', [L]),
+
+    % imprime cada solucao otima
+    forall(
+        member(_-S, Otimas),
+        (format('Solucao: ~w~n', [S]))
+    ).
