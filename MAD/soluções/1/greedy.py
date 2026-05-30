@@ -1,259 +1,183 @@
-"""
-ITEM 1 - Estratégias Greedy
-Avaliação de diferentes estratégias greedy para colocação de guardas
-
-Estratégias implementadas:
-- E1: First-Fail (retângulo com menos vértices incidentes)
-- E2: Max Coverage (vértice que cobre mais retângulos)
-- E3: Vértices Raros (vértices que aparecem em menos retângulos)
-- E4: Hierárquica (obrigatórios primeiro, depois greedy)
-
-Relação com First-Fail em CSPs:
-O retângulo com menos vértices incidentes corresponde à variável com
-menor domínio num CSP. Escolhê-lo primeiro aplica o princípio de
-"falhar cedo" (fail early), reduzindo o espaço de busca.
-"""
-
 import sys
 import os
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
-from instancia import INSTANCIA
 import time
 
+# --- REAPROVEITANDO A CLASSE GENÉRICA DO PASSO ANTERIOR ---
+class InstanciaGenerica:
+    def __init__(self, retangulos_dict, vertices_lista):
+        self.retangulos = retangulos_dict
+        self.vertices = set(vertices_lista)
+        self.num_retangulos = len(retangulos_dict)
+
+    def retangulos_por_vertice(self):
+        v_para_r = {v: set() for v in self.vertices}
+        for rect_id, verts in self.retangulos.items():
+            for v in verts:
+                if v in v_para_r:
+                    v_para_r[v].add(rect_id)
+        return v_para_r
+
+    def verificar_solucao(self, guardas):
+        cobertos = set()
+        v_para_r = self.retangulos_por_vertice()
+        for g in guardas:
+            if g in v_para_r:
+                cobertos.update(v_para_r[g])
+        return len(cobertos) == self.num_retangulos
+
+
+# --- SUA CLASSE GREEDY (Adaptada para receber a instância) ---
 class EstrategiaGreedy:
-    def __init__(self, instancia=None):
-        self.instancia = instancia or INSTANCIA
+    def __init__(self, instancia):
+        self.instancia = instancia
         self.vertice_para_rects = self.instancia.retangulos_por_vertice()
     
-    # ----------------------------------------------------------
-    # E1: First-Fail (retângulo com menos vértices)
-    # ----------------------------------------------------------
     def first_fail(self):
-        """
-        First-Fail: escolhe o retângulo com MENOS vértices incidentes
-        (equivalente a escolher a variável com menor domínio num CSP)
-        """
-        guardas = set()
-        cobertos = set()
-        
-        # Ordenar retângulos por número de vértices (crescente)
-        retangulos_ordenados = sorted(
-            self.instancia.retangulos.items(),
-            key=lambda x: len(x[1])
-        )
-        
+        guardas, cobertos = set(), set()
+        retangulos_ordenados = sorted(self.instancia.retangulos.items(), key=lambda x: len(x[1]))
         while len(cobertos) < self.instancia.num_retangulos:
-            # Encontrar primeiro retângulo não coberto
-            alvo = None
-            for rect, verts in retangulos_ordenados:
-                if rect not in cobertos:
-                    alvo = (rect, verts)
-                    break
-            
-            if alvo is None:
-                break
-            
+            alvo = next((r for r in retangulos_ordenados if r[0] not in cobertos), None)
+            if not alvo: break
             rect_alvo, verts_alvo = alvo
-            
-            # No retângulo crítico, escolher vértice que cobre mais
-            melhor_v = None
-            melhor_contagem = -1
-            
-            for v in verts_alvo:
-                novos = len(self.vertice_para_rects[v] - cobertos)
-                if novos > melhor_contagem:
-                    melhor_contagem = novos
-                    melhor_v = v
-            
+            melhor_v = max(verts_alvo, key=lambda v: len(self.vertice_para_rects[v] - cobertos), default=None)
             if melhor_v:
                 guardas.add(melhor_v)
                 cobertos.update(self.vertice_para_rects[melhor_v])
-        
         return guardas
     
-    # ----------------------------------------------------------
-    # E2: Max Coverage (vértice que cobre mais)
-    # ----------------------------------------------------------
     def max_coverage(self):
-        """
-        Greedy padrão: escolher vértice que cobre mais retângulos não cobertos
-        """
-        guardas = set()
-        cobertos = set()
-        
+        guardas, cobertos = set(), set()
         while len(cobertos) < self.instancia.num_retangulos:
-            melhor_v = None
-            melhor_contagem = -1
-            
+            melhor_v, melhor_contagem = None, -1
             for v in self.instancia.vertices:
-                if v in guardas:
-                    continue
+                if v in guardas: continue
                 novos = len(self.vertice_para_rects[v] - cobertos)
                 if novos > melhor_contagem:
                     melhor_contagem = novos
                     melhor_v = v
-            
-            if melhor_v:
+            if melhor_v and melhor_contagem > 0:
                 guardas.add(melhor_v)
                 cobertos.update(self.vertice_para_rects[melhor_v])
-            else:
-                break
-        
+            else: break
         return guardas
-    
-    # ----------------------------------------------------------
-    # E3: Vértices Raros (menos frequentes)
-    # ----------------------------------------------------------
+
     def vertices_raros(self):
-        """
-        Priorizar vértices que aparecem em poucos retângulos
-        """
-        guardas = set()
-        cobertos = set()
-        
-        # Ordenar vértices por frequência (crescente = mais raros)
-        vertices_ordenados = sorted(
-            self.instancia.vertices,
-            key=lambda v: len(self.vertice_para_rects[v])
-        )
-        
+        guardas, cobertos = set(), set()
+        vertices_ordenados = sorted(self.instancia.vertices, key=lambda v: len(self.vertice_para_rects[v]))
         for v in vertices_ordenados:
             if len(self.vertice_para_rects[v] - cobertos) > 0:
                 guardas.add(v)
                 cobertos.update(self.vertice_para_rects[v])
-        
         return guardas
-    
-    # ----------------------------------------------------------
-    # E4: Hierárquica (obrigatórios + greedy)
-    # ----------------------------------------------------------
+
     def hierarquica(self):
-        """
-        Hierárquica:
-        1. Vértices obrigatórios (retângulos com apenas 1 vértice)
-        2. Greedy max coverage para o restante
-        """
-        guardas = set()
-        cobertos = set()
-        
-        # Passo 1: vértices obrigatórios
+        guardas, cobertos = set(), set()
         for rect, verts in self.instancia.retangulos.items():
             if len(verts) == 1:
                 v = next(iter(verts))
                 if v not in guardas:
                     guardas.add(v)
                     cobertos.update(self.vertice_para_rects[v])
-        
-        # Passo 2: greedy para o restante
         while len(cobertos) < self.instancia.num_retangulos:
-            melhor_v = None
-            melhor_contagem = -1
-            
-            for v in self.instancia.vertices:
-                if v in guardas:
-                    continue
-                novos = len(self.vertice_para_rects[v] - cobertos)
-                if novos > melhor_contagem:
-                    melhor_contagem = novos
-                    melhor_v = v
-            
-            if melhor_v:
+            melhor_v = max(self.instancia.vertices - guardas, key=lambda v: len(self.vertice_para_rects[v] - cobertos), default=None)
+            if melhor_v and len(self.vertice_para_rects[melhor_v] - cobertos) > 0:
                 guardas.add(melhor_v)
                 cobertos.update(self.vertice_para_rects[melhor_v])
-            else:
-                break
-        
+            else: break
         return guardas
 
 
-def main():
-    print("=" * 70)
-    print("ITEM 1 - AVALIAÇÃO DE ESTRATÉGIAS GREEDY")
-    print("=" * 70)
+# --- PARSER DO FICHEIRO GERADO PELO C ---
+def carregar_instancias_do_c(caminho_arquivo):
+    """
+    Lê o arquivo de resultados do rectParts.c e converte
+    para objetos da classe InstanciaGenerica.
+    """
+    if not os.path.exists(caminho_arquivo):
+        print(f"Erro: Arquivo '{caminho_arquivo}' não encontrado.")
+        sys.exit(1)
+
+    with open(caminho_arquivo, 'r') as f:
+        linhas = [linha.strip() for linha in f.readlines() if linha.strip()]
     
-    print(INSTANCIA)
-    
-    estrategias = {
-        "E1 - First-Fail (retângulo menos opções)": EstrategiaGreedy.first_fail,
-        "E2 - Max Coverage (vértice mais retângulos)": EstrategiaGreedy.max_coverage,
-        "E3 - Vértices Raros": EstrategiaGreedy.vertices_raros,
-        "E4 - Hierárquica (obrigatórios + greedy)": EstrategiaGreedy.hierarquica
-    }
-    
-    print("\n" + "-" * 70)
-    print(f"{'Estratégia':<40} {'Guardas':<10} {'Tempo(ms)':<12} {'Solução'}")
-    print("-" * 70)
-    
-    resultados = {}
-    
-    for nome, estrategia in estrategias.items():
-        greedy = EstrategiaGreedy()
-        inicio = time.time()
-        solucao = estrategia(greedy)
-        tempo = (time.time() - inicio) * 1000
+    if not linhas:
+        return []
+
+    num_instancias = int(linhas[0])
+    idx = 1
+    instancias_processadas = []
+
+    for _ in range(num_instancias):
+        if idx >= len(linhas): break
         
-        resultados[nome] = {
-            'solucao': solucao,
-            'tamanho': len(solucao),
-            'tempo': tempo,
-            'valida': INSTANCIA.verificar_solucao(solucao)
+        num_faces = int(linhas[idx])
+        idx += 1
+        
+        retangulos_dict = {}
+        todos_vertices = set()
+        
+        for _ in range(num_faces):
+            partes = list(map(int, linhas[idx].split()))
+            idx += 1
+            
+            face_id = partes[0]
+            num_verts = partes[1]
+            
+            # Agrupa os números de 2 em 2 para formar tuplas de coordenadas (X, Y)
+            coords_linha = partes[2:]
+            vertices_face = []
+            for i in range(num_verts):
+                x = coords_linha[2 * i]
+                y = coords_linha[2 * i + 1]
+                v_tupla = (x, y) # Usar coordenadas como ID único do vértice
+                vertices_face.append(v_tupla)
+                todos_vertices.add(v_tupla)
+                
+            retangulos_dict[f"Face_{face_id}"] = set(vertices_face)
+            
+        instancias_processadas.append(InstanciaGenerica(retangulos_dict, list(todos_vertices)))
+        
+    return instancias_processadas
+
+
+# --- EXECUÇÃO PRINCIPAL ---
+def main():
+    if len(sys.argv) < 2:
+        print("Uso: python solver_dcel.py <arquivo_resultados_do_c.txt>")
+        sys.exit(1)
+        
+    arquivo_c = sys.argv[1]
+    instancias = carregar_instancias_do_c(arquivo_c)
+    
+    print(f"Foram carregadas {len(instancias)} instâncias do arquivo.")
+    
+    for i, inst in enumerate(instancias, 1):
+        print("\n" + "=" * 80)
+        print(f" RESOLVENDO INSTÂNCIA CRIADA PELO PROGRAMA C #{i}")
+        print("=" * 80)
+        print(f"Total de Retângulos (Faces): {inst.num_retangulos} | Vértices Únicos detetados: {len(inst.vertices)}")
+        
+        solver = EstrategiaGreedy(inst)
+        estrategias = {
+            "E1 - First-Fail": solver.first_fail,
+            "E2 - Max Coverage": solver.max_coverage,
+            "E3 - Vértices Raros": solver.vertices_raros,
+            "E4 - Hierárquica": solver.hierarquica
         }
         
-        valida_str = "✓" if resultados[nome]['valida'] else "✗"
-        print(f"{nome:<40} {len(solucao):<10} {tempo:<12.3f} {sorted(solucao)} {valida_str}")
-    
-    # Análise da relação com First-Fail
-    print("\n" + "=" * 70)
-    print("RELAÇÃO COM FIRST-FAIL (CSPs)")
-    print("=" * 70)
-    print("""
-    ┌─────────────────────────────────────────────────────────────────────┐
-    │                    RELAÇÃO FIRST-FAIL                               │
-    ├─────────────────────────────────────────────────────────────────────┤
-    │                                                                     │
-    │   FIRST-FAIL em CSPs          ↔    ESTRATÉGIA E1                    │
-    │                                                                     │
-    │   • Variável c/ menor domínio  ↔    Retângulo c/ menos vértices     │
-    │   • Falhar cedo (fail early)   ↔    Decisão crítica primeiro        │
-    │   • Reduz espaço de busca      ↔    Evita backtracking excessivo    │
-    │                                                                     │
-    └─────────────────────────────────────────────────────────────────────┘
-    
-    Justificativa: O retângulo com menos vértices incidentes é o mais 
-    restritivo. Se não for coberto cedo, pode forçar backtracking. 
-    Esta é a aplicação direta do princípio first-fail.
-    """)
-    
-    # Comparação com ótimo
-    print("=" * 70)
-    print("COMPARAÇÃO COM SOLUÇÃO ÓTIMA")
-    print("=" * 70)
-    
-    sol_otima = INSTANCIA.solucoes_optimas()
-    custo_otimo = len(sol_otima[0])
-    
-    print(f"\nSoluções ótimas conhecidas: {sol_otima}")
-    print(f"Custo ótimo: {custo_otimo} guardas\n")
-    
-    for nome, dados in resultados.items():
-        if dados['tamanho'] == custo_otimo:
-            print(f"  ✓ {nome}: ÓTIMA")
-        else:
-            print(f"  ✗ {nome}: SUBÓTIMA ({dados['tamanho'] - custo_otimo} acima)")
-    
-    print("\n" + "=" * 70)
-    print("CONCLUSÃO")
-    print("=" * 70)
-    print("""
-    A melhor estratégia greedy para esta instância é a E4 (Hierárquica),
-    seguida pela E1 (First-Fail) e E2 (Max Coverage). A estratégia E3
-    (Vértices Raros) não garante otimalidade.
-    
-    Recomendação: Para problemas pequenos, usar E4; para problemas grandes,
-    usar E1 (First-Fail) pois reduz o espaço de busca.
-    """)
-
+        print("-" * 80)
+        print(f"{'Estratégia':<25} {'Guardas':<10} {'Tempo(ms)':<12} {'Validação'}")
+        print("-" * 80)
+        
+        for nome, func in list(estrategias.items()):
+            inicio = time.time()
+            solucao = func()
+            tempo = (time.time() - inicio) * 1000
+            valida = "✓ Válida" if inst.verificar_solucao(solucao) else "✗ Falhou"
+            
+            print(f"{nome:<25} {len(solucao):<10} {tempo:<12.3f} {valida}")
+            # Se quiser ver as coordenadas dos guardas escolhidos, descomente a linha abaixo:
+            # print(f"   > Guardas em: {sorted(solucao)}")
 
 if __name__ == "__main__":
     main()
