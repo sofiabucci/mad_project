@@ -8,7 +8,7 @@ import sys
 import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from common.instancia import INSTANCIA
+from instancia import INSTANCIA
 import time
 
 class ProgramacaoDinamica:

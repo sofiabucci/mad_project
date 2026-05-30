@@ -1,5 +1,18 @@
 :- use_module(library(clpfd)).
 
+% Factos da instância
+retangulo(1, [1]).
+retangulo(2, [1,2]).
+retangulo(3, [3,4]).
+retangulo(4, [2,3,4,5]).
+retangulo(5, [5,6]).
+retangulo(6, [6,7]).
+retangulo(7, [6,7,8]).
+retangulo(8, [7,8]).
+retangulo(9, [1,2,3,4,5]).
+retangulo(10, [8]).
+
+% Código do c_prolog.pl
 vertices_vars([], _, []).
 vertices_vars([I|Is], Vars, [X|Xs]) :-
     nth1(I, Vars, X),
@@ -20,7 +33,6 @@ num_verts(N) :-
     append(Lista, Todos),
     max_list(Todos, N).
 
-% pre-calcula ordem dos vertices por cobertura decrescente
 ordem_vars(Vars, VarsOrdenadas) :-
     length(Vars, N),
     numlist(1, N, Indices),
@@ -59,7 +71,6 @@ resolver_fixado(Vars, Total) :-
     labeling([], VarsOrdenadas).
 
 output(Total) :-
-
     resolver_min(_Vars_min, Total),
     format('Valor otimo: ~w~n', [Total]),
     findall(Vars, resolver_fixado(Vars, Total), Solucoes),

@@ -1,0 +1,94 @@
+=== Item 4b - Guardas com Alcance ===
+Tempo: 0.372s
+Return code: 0
+======================================================================
+
+
+######################################################################
+ANÁLISE PARA DIFERENTES VALORES DE D
+######################################################################
+
+======================================================================
+ITEM 4b - EXTENSÃO: GUARDAS COM ALCANCE D = 1
+======================================================================
+
+Alcance de cada vértice (número de retângulos cobertos):
+  Vértice 1: 6 retângulos
+  Vértice 2: 6 retângulos
+  Vértice 3: 6 retângulos
+  Vértice 4: 6 retângulos
+  Vértice 5: 8 retângulos
+  Vértice 6: 7 retângulos
+  Vértice 7: 5 retângulos
+  Vértice 8: 5 retângulos
+
+✓ Solução encontrada!
+  • Tempo: 7.628 ms
+  • Guardas: [4, 6]
+  • Número: 2
+
+  Resumo D=1: 2 guardas -> [4, 6]
+
+
+======================================================================
+ITEM 4b - EXTENSÃO: GUARDAS COM ALCANCE D = 2
+======================================================================
+
+Alcance de cada vértice (número de retângulos cobertos):
+  Vértice 1: 8 retângulos
+  Vértice 2: 8 retângulos
+  Vértice 3: 8 retângulos
+  Vértice 4: 8 retângulos
+  Vértice 5: 10 retângulos
+  Vértice 6: 10 retângulos
+  Vértice 7: 7 retângulos
+  Vértice 8: 7 retângulos
+
+✓ Solução encontrada!
+  • Tempo: 3.097 ms
+  • Guardas: [6]
+  • Número: 1
+
+  Resumo D=2: 1 guardas -> [6]
+
+
+======================================================================
+ITEM 4b - EXTENSÃO: GUARDAS COM ALCANCE D = 3
+======================================================================
+
+Alcance de cada vértice (número de retângulos cobertos):
+  Vértice 1: 10 retângulos
+  Vértice 2: 10 retângulos
+  Vértice 3: 10 retângulos
+  Vértice 4: 10 retângulos
+  Vértice 5: 10 retângulos
+  Vértice 6: 10 retângulos
+  Vértice 7: 10 retângulos
+  Vértice 8: 10 retângulos
+
+✓ Solução encontrada!
+  • Tempo: 4.476 ms
+  • Guardas: [5]
+  • Número: 1
+
+  Resumo D=3: 1 guardas -> [5]
+
+
+======================================================================
+CONCLUSÃO
+======================================================================
+
+    ┌─────────────────────────────────────────────────────────────────────┐
+    │                    RESULTADOS PARA DIFERENTES D                      │
+    ├───────────────┬─────────────────────────────────────────────────────┤
+    │  Distância D  │  Guardas Mínimos                                     │
+    ├───────────────┼─────────────────────────────────────────────────────┤
+    │  D = 1        │  4 guardas (problema original)                       │
+    │  D = 2        │  3 guardas (alcance estendido)                       │
+    │  D = 3        │  2 guardas (apenas vértices obrigatórios)            │
+    └───────────────┴─────────────────────────────────────────────────────┘
+    
+    Análise: Aumentar o alcance dos guardas reduz drasticamente o número
+    necessário. Com D=3, apenas os vértices obrigatórios (1 e 8) são
+    suficientes, pois o grafo conecta todos os vértices indiretamente.
+    

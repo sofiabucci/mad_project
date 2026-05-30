@@ -1,0 +1,6 @@
+CPU time (minimo): 0.001 s
+Valor otimo: 4
+2 solucao(oes) otima(s)
+
+Solucao: [1,0,1,0,0,1,0,1]
+Solucao: [1,0,0,1,0,1,0,1]

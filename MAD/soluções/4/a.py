@@ -7,16 +7,15 @@ Problema: Minimizar número de guardas e depois minimizar número de cores
 
 import sys
 import os
+import ortools
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
-from common.instancia import INSTANCIA
+from instancia import INSTANCIA
 
 class ColoredGuards:
     def __init__(self, instancia=None):
         self.instancia = instancia or INSTANCIA
         self.vertice_para_rects = self.instancia.retangulos_por_vertice()
         
-        # Calcular conflitos entre vértices (mesmo retângulo)
         self.conflitos = set()
         for rect, verts in self.instancia.retangulos.items():
             verts_lista = list(verts)
@@ -25,17 +24,15 @@ class ColoredGuards:
                     self.conflitos.add((verts_lista[i], verts_lista[j]))
     
     def resolver_minimo_guardas(self):
-        """Primeiro: encontrar número mínimo de guardas usando OR-Tools"""
         try:
             from ortools.sat.python import cp_model
         except ImportError:
-            print("OR-Tools não instalado. Execute: pip install ortools")
+            print("OR-Tools não instalado.")
             return None, None
         
         model = cp_model.CpModel()
         x = {v: model.NewBoolVar(f'x_{v}') for v in self.instancia.vertices}
         
-        # Restrições de cobertura
         for rect, verts in self.instancia.retangulos.items():
             model.Add(sum(x[v] for v in verts) >= 1)
         
@@ -51,13 +48,11 @@ class ColoredGuards:
         return None, None
     
     def resolver_minimo_cores(self, guardas):
-        """Segundo: encontrar número mínimo de cores para os guardas"""
         try:
             from ortools.sat.python import cp_model
         except ImportError:
             return None, None
         
-        # Filtrar conflitos apenas entre guardas
         conflitos_guardas = [(u, v) for (u, v) in self.conflitos 
                             if u in guardas and v in guardas]
         
@@ -72,25 +67,23 @@ class ColoredGuards:
         for u, v in conflitos_guardas:
             model.Add(cores[u] != cores[v])
         
-        cores_usadas = [model.NewBoolVar(f'c_{i}') for i in range(max_cores)]
+        # Minimizar o valor máximo da cor
+        max_cor = model.NewIntVar(0, max_cores - 1, 'max_cor')
         for v in guardas:
-            for i in range(max_cores):
-                model.Add(cores[v] == i).OnlyEnforceIf(cores_usadas[i])
-                model.Add(cores[v] != i).OnlyEnforceIf(cores_usadas[i].Not())
+            model.Add(max_cor >= cores[v])
         
-        model.Minimize(sum(cores_usadas))
+        model.Minimize(max_cor)
         
         solver = cp_model.CpSolver()
         status = solver.Solve(model)
         
         if status == cp_model.OPTIMAL:
-            min_cores = int(solver.ObjectiveValue())
+            min_cores = int(solver.Value(max_cor)) + 1
             cores_assign = {v: solver.Value(cores[v]) for v in guardas}
             return min_cores, cores_assign
         return None, None
     
     def resolver(self):
-        """Resolve o problema completo"""
         print("\n" + "=" * 70)
         print("ITEM 4a - EXTENSÃO: GUARDAS COM CORES")
         print("=" * 70)
@@ -114,9 +107,13 @@ class ColoredGuards:
         
         print(f"  ✓ Mínimo de cores: {min_cores}")
         print("\n  Distribuição por cor:")
-        for cor in range(min_cores):
-            verts = [v for v in guardas if cores[v] == cor]
-            print(f"    Cor {cor + 1}: {sorted(verts)}")
+        
+        por_cor = {}
+        for v, c in cores.items():
+            por_cor.setdefault(c, []).append(v)
+        
+        for cor in sorted(por_cor.keys()):
+            print(f"    Cor {cor + 1}: {sorted(por_cor[cor])}")
         
         print("\n" + "-" * 50)
         print("CONCLUSÃO")
@@ -124,8 +121,6 @@ class ColoredGuards:
         print(f"  • Número mínimo de guardas: {min_guardas}")
         print(f"  • Número mínimo de cores: {min_cores}")
         print(f"  • Guardas: {sorted(guardas)}")
-        print(f"  • Cores: {cores}")
-
 
 def main():
     solver = ColoredGuards()

@@ -1,0 +1,236 @@
+================================================================================
+                    RESULTADOS COMPLETOS DO TRABALHO
+                    Problema de Cobertura de Partições Retangulares
+================================================================================
+
+Data: 2026-05-30
+Instância: 8 vértices, 10 retângulos
+Solução ótima conhecida: 4 guardas
+
+================================================================================
+ITEM 1 - ESTRATÉGIAS GREEDY
+================================================================================
+
+Arquivo: greedyS.txt
+
+======================================================================
+ITEM 1 - ESTRATÉGIAS GREEDY
+======================================================================
+Instância: 10 retângulos, 8 vértices
+
+----------------------------------------------------------------------
+Estratégia                Guardas    Tempo(ms)    Solução
+----------------------------------------------------------------------
+E1 - First-Fail           4          0.017        [1, 3, 6, 8]
+E2 - Max Coverage         4          0.008        [1, 3, 6, 8]
+E3 - Vértices Raros       7          0.005        [1, 2, 3, 5, 6, 7, 8]
+E4 - Hierárquica          4          0.009        [1, 3, 6, 8]
+
+Análise:
+- E1, E2, E4 encontram solução ótima (4 guardas)
+- E3 tem pior desempenho (7 guardas)
+- E2 é a mais rápida (0.008 ms)
+- E1 implementa o princípio first-fail dos CSPs
+
+================================================================================
+ITEM 2b - MAC + AC-3 (Propagação de Restrições)
+================================================================================
+
+Arquivo: b_ac3_mac.txt
+
+======================================================================
+ITEM 2b - PROPAGAÇÃO DE RESTRIÇÕES (MAC + AC-3)
+======================================================================
+
+✓ Solução encontrada!
+  • Tempo: 0.104 ms
+  • Nós explorados: 5
+  • Poda realizada: 4
+  • Guardas: [1, 4, 6, 8]
+  • Número: 4
+
+✓ Validação: todos os 10 retângulos cobertos
+✓ Solução ótima (custo = 4)
+
+Análise:
+- Implementação sem módulos de programação por restrições
+- AC-3 para consistência de arcos
+- MAC para backtracking com propagação
+- Heurísticas: First-Fail e LCV
+- Apenas 5 nós explorados devido à poda eficaz
+
+================================================================================
+ITEM 2c - GOOGLE OR-TOOLS (MIP)
+================================================================================
+
+Arquivo: c_ortools.txt (ou partsRects.py da professora)
+
+======================================================================
+ITEM 2c - GOOGLE OR-TOOLS (MIP) - Código da Professora
+======================================================================
+
+✓ Solução ótima encontrada!
+  • Tempo: 5.310 ms
+  • Guardas: [1, 3, 5, 8]
+  • Número: 4
+
+Análise:
+- Utiliza solver SCIP (Mixed Integer Programming)
+- Código baseado no exemplo partsRects.py da professora
+- Solução ótima garantida
+
+================================================================================
+ITEM 2c - SWI-PROLOG (CLPFD)
+================================================================================
+
+Arquivo: resultados_prolog.txt
+
+CPU time (minimo): 0.001 s
+Valor otimo: 4
+2 solucao(oes) otima(s)
+
+Solucao: [1,0,1,0,0,1,0,1]  → Guardas nos vértices {1, 3, 6, 8}
+Solucao: [1,0,0,1,0,1,0,1]  → Guardas nos vértices {1, 4, 6, 8}
+
+Análise:
+- Utiliza biblioteca clpfd do SWI-Prolog
+- Extremamente rápido (1 ms)
+- Encontra todas as soluções ótimas (2 soluções)
+
+================================================================================
+ITEM 3 - PROGRAMAÇÃO DINÂMICA
+================================================================================
+
+Arquivo: prog_dinam.txt
+
+======================================================================
+ITEM 3 - PROGRAMAÇÃO DINÂMICA
+======================================================================
+
+✓ Solução encontrada!
+  • Tempo: 0.086 ms
+  • Guardas: [1, 3, 6, 8]
+  • Número: 4
+
+--------------------------------------------------
+ANÁLISE DE COMPLEXIDADE
+--------------------------------------------------
+  • Número de retângulos (n): 10
+  • Número de vértices (m): 8
+  • Estados (2^n): 1024
+  • Operações: 8192
+  • Complexidade de espaço: O(2^n × m) = 8192 bytes aprox.
+  • Complexidade de tempo: O(2^n × m)
+
+✓ Solução ótima (custo = 4)
+
+--------------------------------------------------
+PROGRAMAÇÃO DINÂMICA COM MEMOIZAÇÃO
+--------------------------------------------------
+  • Tempo: 0.075 ms
+  • Guardas: [1, 3, 6, 8]
+  • Número: 4
+
+Análise:
+- Bottom-up (tabela) e top-down (memoização)
+- Ambas encontram solução ótima
+- Memoização ligeiramente mais rápida (0.075 ms)
+
+================================================================================
+ITEM 4a - GUARDAS COM CORES
+================================================================================
+
+Arquivo: a.txt
+
+======================================================================
+ITEM 4a - EXTENSÃO: GUARDAS COM CORES
+======================================================================
+
+1. Encontrando número mínimo de guardas...
+  ✓ Mínimo de guardas: 4
+    Guardas: [1, 3, 6, 8]
+
+2. Encontrando número mínimo de cores...
+  ✓ Mínimo de cores: 2
+
+  Distribuição por cor:
+    Cor 1: [1, 8]
+    Cor 2: [3, 6]
+
+--------------------------------------------------
+CONCLUSÃO
+--------------------------------------------------
+  • Número mínimo de guardas: 4
+  • Número mínimo de cores: 2
+  • Guardas: [1, 3, 6, 8]
+
+Análise:
+- Guardas que veem o mesmo retângulo têm cores distintas
+- Com 4 guardas, são necessárias apenas 2 cores
+- Guardas 1 e 8 não partilham retângulos → mesma cor
+- Guardas 3 e 6 não partilham retângulos → mesma cor
+- Grafo de conflitos é bipartido
+
+================================================================================
+ITEM 4b - GUARDAS COM MAIOR ALCANCE (D)
+================================================================================
+
+Arquivo: b.txt
+
+######################################################################
+ANÁLISE PARA DIFERENTES VALORES DE D
+######################################################################
+
+======================================================================
+ITEM 4b - EXTENSÃO: GUARDAS COM ALCANCE D = 1
+======================================================================
+
+Alcance de cada vértice (número de retângulos cobertos):
+  Vértice 1: 6 retângulos    Vértice 5: 8 retângulos
+  Vértice 2: 6 retângulos    Vértice 6: 7 retângulos
+  Vértice 3: 6 retângulos    Vértice 7: 5 retângulos
+  Vértice 4: 6 retângulos    Vértice 8: 5 retângulos
+
+✓ Solução encontrada!  • Tempo: 7.628 ms  • Guardas: [4, 6]  • Número: 2
+
+======================================================================
+ITEM 4b - EXTENSÃO: GUARDAS COM ALCANCE D = 2
+======================================================================
+
+Alcance de cada vértice (número de retângulos cobertos):
+  Vértice 1: 8 retângulos    Vértice 5: 10 retângulos
+  Vértice 2: 8 retângulos    Vértice 6: 10 retângulos
+  Vértice 3: 8 retângulos    Vértice 7: 7 retângulos
+  Vértice 4: 8 retângulos    Vértice 8: 7 retângulos
+
+✓ Solução encontrada!  • Tempo: 3.097 ms  • Guardas: [6]  • Número: 1
+
+======================================================================
+ITEM 4b - EXTENSÃO: GUARDAS COM ALCANCE D = 3
+======================================================================
+
+Alcance de cada vértice (número de retângulos cobertos):
+  Todos os vértices cobrem 10 retângulos
+
+✓ Solução encontrada!  • Tempo: 4.476 ms  • Guardas: [5]  • Número: 1
+
+======================================================================
+CONCLUSÃO - Guardas com Alcance
+======================================================================
+
+┌─────────────────────────────────────────────────────────────────────┐
+│                    RESULTADOS PARA DIFERENTES D                      │
+├───────────────┬─────────────────────────────────────────────────────┤
+│  Distância D  │  Guardas Mínimos        │ Solução                    │
+├───────────────┼─────────────────────────┼────────────────────────────┤
+│  D = 1        │  2 guardas              │ [4, 6]                     │
+│  D = 2        │  1 guarda               │ [6]                        │
+│  D = 3        │  1 guarda               │ [5]                        │
+└───────────────┴─────────────────────────┴────────────────────────────┘
+
+Análise:
+- Aumentar o alcance reduz drasticamente o número de guardas
+- Com D=2, o vértice 6 cobre todos os retângulos (10)
+- Com D=3, qualquer vértice cobre todos os retângulos
+- O grafo conecta todos os vértices indiretamente
+

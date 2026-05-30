@@ -1,0 +1,19 @@
+=== Item 2b - MAC + AC-3 ===
+Tempo: 0.017s
+Return code: 0
+======================================================================
+
+
+======================================================================
+ITEM 2b - PROPAGAÇÃO DE RESTRIÇÕES (MAC + AC-3)
+======================================================================
+
+✓ Solução encontrada!
+  • Tempo: 0.104 ms
+  • Nós explorados: 5
+  • Poda realizada: 4
+  • Guardas: [1, 4, 6, 8]
+  • Número: 4
+
+✓ Validação: todos os 10 retângulos cobertos
+✓ Solução ótima (custo = 4)
